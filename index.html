@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notify Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* --- PERBAIKAN UNTUK AUTOFILL BROWSER --- */
+        /* Memaksa latar belakang putih dan teks hitam saat autofill */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover, 
+        textarea:-webkit-autofill:focus, 
+        textarea:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px white inset !important;
+            -webkit-text-fill-color: black !important;
+            box-shadow: 0 0 0 30px white inset !important;
+            color: black !important;
+            background-color: white !important;
+        }
+        
+        /* --- Gaya untuk Live Preview Notifikasi --- */
+        /* Ini adalah style yang akan digunakan di PREVIEW dan di KODE FINAL */
+        #preview-popup {
+            position: fixed;
+            padding: 15px 20px;
+            padding-right: 35px; 
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 14px;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease-in-out;
+            max-width: 320px;
+            line-height: 1.4;
+        }
+
+        /* Posisi */
+        .preview-position-bottom-left {
+            bottom: 20px;
+            left: 20px;
+            transform: translateX(-100px);
+        }
+        .preview-position-bottom-right {
+            bottom: 20px;
+            right: 20px;
+            transform: translateX(100px);
+        }
+        .preview-position-top-left {
+            top: 20px;
+            left: 20px;
+            transform: translateX(-100px);
+        }
+        .preview-position-top-right {
+            top: 20px;
+            right: 20px;
+            transform: translateX(100px);
+        }
+
+        /* Saat terlihat */
+        #preview-popup.preview-visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        
+        #preview-popup-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        #preview-popup-content p {
+            margin: 0;
+            padding: 0;
+        }
+        #preview-popup-content strong {
+            font-weight: bold;
+        }
+        #preview-popup-content small {
+            font-size: 12px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        
+        /* --- Gaya untuk Pesan Toast --- */
+        .toast-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.4s ease-in-out;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        .toast-message.toast-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-message.toast-error {
+            background-color: #e74c3c; /* Merah */
+            color: white;
+        }
+        .toast-message.toast-success {
+            background-color: #2ecc71; /* Hijau */
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8">
+
+    <!-- Kontainer Live Preview (Awalnya Tersembunyi) -->
+    <div id="preview-popup">
+        <div id="preview-popup-close">&times;</div>
+        <div id="preview-popup-content">
+            <p><strong>Syarif</strong> dari <strong>Denpasar</strong> baru saja membeli <strong>NotifPro</strong></p>
+            <small>5 hours yang lalu</small>
+        </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Notify Pro</h1>
+        
+        <!-- NAVIGASI MODE BARU -->
+        <div class="mb-6 max-w-lg mx-auto bg-gray-700 rounded-lg p-1 flex space-x-1" id="mode-toggle">
+            <button id="btn-mode-normal" class="w-1/3 py-2 px-3 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white">
+                Normal (Satu)
+            </button>
+            <button id="btn-mode-cepat" class="w-1/3 py-2 px-3 rounded-md text-sm font-medium transition-colors bg-gray-600 hover:bg-gray-500 text-gray-300">
+                Cepat (Massal)
+            </button>
+            <button id="btn-mode-pairing" class="w-1/3 py-2 px-3 rounded-md text-sm font-medium transition-colors bg-gray-600 hover:bg-gray-500 text-gray-300">
+                Pairing (Data Mentah)
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- KOLOM KIRI: Panel Admin / Input -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                <div class="space-y-6">
+                    
+                    <!-- 1. Form Input Data (NORMAL) -->
+                    <div id="mode-normal">
+                        <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">1. Tambah Data Notifikasi (Normal)</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="nama" class="block text-sm font-medium text-gray-300 mb-1">Nama Pembeli</label>
+                                <input type="text" id="nama" placeholder="Contoh: Syarif" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                            <div>
+                                <label for="alamat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota</label>
+                                <input type="text" id="alamat" placeholder="Contoh: Denpasar" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                            <div>
+                                <label for="produk" class="block text-sm font-medium text-gray-300 mb-1">Nama Produk</label>
+                                <input type="text" id="produk" placeholder="Contoh: Notif Pro" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                            <div>
+                                <label for="waktu" class="block text-sm font-medium text-gray-300 mb-1">Waktu</label>
+                                <input type="text" id="waktu" placeholder="Contoh: 5 hours yang lalu" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                            <button id="tambah-data" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Tambah Notifikasi ke Daftar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 1. Form Input Data (CEPAT) - BARU -->
+                    <div id="mode-cepat" class="hidden">
+                        <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">1. Tambah Data Notifikasi (Cepat)</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="nama-cepat" class="block text-sm font-medium text-gray-300 mb-1">Nama Pembeli</label>
+                                <textarea id="nama-cepat" rows="3" placeholder="Contoh: Syarif, Budi, Wati" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Pisahkan setiap nama dengan koma (,)</p>
+                            </div>
+                            <div>
+                                <label for="alamat-cepat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota</label>
+                                <textarea id="alamat-cepat" rows="3" placeholder="Contoh: Denpasar, Jakarta, Bandung" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Pisahkan setiap alamat dengan koma (,)</p>
+                            </div>
+                            <div>
+                                <label for="produk-cepat" class="block text-sm font-medium text-gray-300 mb-1">Nama Produk</label>
+                                <textarea id="produk-cepat" rows="3" placeholder="Contoh: Notif Pro, Ebook FB Ads" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Pisahkan setiap produk dengan koma (,)</p>
+                            </div>
+                            <div>
+                                <label for="waktu-cepat" class="block text-sm font-medium text-gray-300 mb-1">Waktu</label>
+                                <textarea id="waktu-cepat" rows="3" placeholder="Contoh: 1 jam yang lalu, baru saja, 5 menit yang lalu" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Pisahkan setiap waktu dengan koma (,)</p>
+                            </div>
+                            <button id="tambah-data-cepat" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Tambah Notifikasi Massal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Form Input Data (PAIRING) - BARU -->
+                    <div id="mode-pairing" class="hidden">
+                        <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">1. Tambah Data Notifikasi (Pairing)</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="data-pairing" class="block text-sm font-medium text-gray-300 mb-1">Data Mentah (Satu notifikasi per baris)</label>
+                                <textarea id="data-pairing" rows="5" placeholder="Syarif, Denpasar, Notif Pro, 1 jam lalu&#10;Budi, Jakarta, Ebook FB Ads, 5 menit lalu" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Format: <strong>Nama, Alamat, Produk, Waktu</strong></p>
+                                <p class="text-xs text-gray-400 mt-1">Pisahkan tiap data dengan koma (,)</p>
+                            </div>
+                            <button id="tambah-data-pairing" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                                Tambah Notifikasi dari Pairing
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Pengaturan Tampilan & Waktu -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">2. Pengaturan Tampilan & Waktu</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="posisi" class="block text-sm font-medium text-gray-300 mb-1">Pilih Posisi Notifikasi</label>
+                                <select id="posisi" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                                    <option value="position-bottom-left">Kiri Bawah</option>
+                                    <option value="position-bottom-right">Kanan Bawah</option>
+                                    <option value="position-top-left">Kiri Atas</option>
+                                    <option value="position-top-right">Kanan Atas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="urutan" class="block text-sm font-medium text-gray-300 mb-1">Urutan Tampilan Notifikasi</label>
+                                <select id="urutan" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                                    <option value="berurutan">Berurutan (Sesuai Daftar)</option>
+                                    <option value="acak">Acak (Random)</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label for="delay-awal" class="block text-sm font-medium text-gray-300 mb-1">Tampil setelah web terbuka (detik)</label>
+                                <input type="number" id="delay-awal" value="3" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                             <div>
+                                <label for="durasi-tampil" class="block text-sm font-medium text-gray-300 mb-1">Durasi notifikasi tampil (detik)</label>
+                                <input type="number" id="durasi-tampil" value="2" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                             <div>
+                                <label for="jeda-antar" class="block text-sm font-medium text-gray-300 mb-1">Jeda antar notifikasi (detik)</label>
+                                <input type="number" id="jeda-antar" value="3" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Pengaturan Desain & Warna -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">3. Pengaturan Desain & Warna</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label for="warna-bg" class="block text-sm font-medium text-gray-300">Warna Latar Kotak Notif</label>
+                                <input type="color" id="warna-bg" value="#2c3e50" class="w-10 h-10 p-0 border-0 rounded cursor-pointer">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="warna-teks-utama" class="block text-sm font-medium text-gray-300">Warna Teks Utama</label>
+                                <input type="color" id="warna-teks-utama" value="#ffffff" class="w-10 h-10 p-0 border-0 rounded cursor-pointer">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="warna-teks-waktu" class="block text-sm font-medium text-gray-300">Warna Teks Waktu</label>
+                                <input type="color" id="warna-teks-waktu" value="#bdc3c7" class="w-10 h-10 p-0 border-0 rounded cursor-pointer">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="warna-ikon-x" class="block text-sm font-medium text-gray-300">Warna Ikon 'X' (Tutup)</label>
+                                <input type="color" id="warna-ikon-x" value="#aaaaaa" class="w-10 h-10 p-0 border-0 rounded cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- KOLOM KANAN: Daftar Data & Output Kode -->
+            <div class="space-y-8">
+                
+                <!-- Daftar Notifikasi -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-xl font-semibold">Daftar Notifikasi Anda</h2>
+                        <button id="hapus-semua-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-xs transition duration-200" style="display: none;">
+                            Hapus Semua
+                        </button>
+                    </div>
+                    <div id="daftar-notifikasi" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        <!-- Data akan ditambahkan di sini oleh JS -->
+                    </div>
+                </div>
+
+                <!-- BARU: Tombol Tes Preview -->
+                <button id="tes-preview-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                    Tes Tampilan Notifikasi
+                </button>
+
+                <!-- Tombol Buat Kode -->
+                <button id="buat-kode" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded text-lg transition duration-200">
+                    Buat Kode Untuk Website Saya
+                </button>
+                
+                <!-- Output Kode -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <div class="flex justify-between items-center mb-3">
+                         <h2 class="text-xl font-semibold">Kode Final (Copy & Paste ke Web Anda)</h2>
+                         <button id="salin-kode" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded text-sm transition duration-200">
+                            Salin Kode
+                        </button>
+                    </div>
+                    <textarea id="output-kode" rows="10" class="w-full p-3 bg-gray-900 text-gray-300 rounded border border-gray-700 font-mono text-sm" readonly></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 text-sm mt-12 mb-6">
+        © 2025. Notify Pro v1.5 by Joze Rizal
+    </footer>
+
+    <!-- Kontainer Pesan Toast/Alert -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[11000] space-y-2">
+        <!-- Pesan akan ditambahkan di sini oleh JS -->
+    </div>
+
+    <script>
+    // Referensi Elemen UI
+    const namaInput = document.getElementById('nama');
+    const alamatInput = document.getElementById('alamat');
+    const produkInput = document.getElementById('produk');
+    const waktuInput = document.getElementById('waktu');
+    const tambahBtn = document.getElementById('tambah-data');
+    const daftarNotifikasiUI = document.getElementById('daftar-notifikasi');
+    
+    // Referensi Elemen UI (BARU - Mode)
+    const btnModeNormal = document.getElementById('btn-mode-normal');
+    const btnModeCepat = document.getElementById('btn-mode-cepat');
+    const modeNormalDiv = document.getElementById('mode-normal');
+    const modeCepatDiv = document.getElementById('mode-cepat');
+
+    // Referensi Elemen UI (BARU - Mode Pairing)
+    const btnModePairing = document.getElementById('btn-mode-pairing');
+    const modePairingDiv = document.getElementById('mode-pairing');
+    const dataPairingInput = document.getElementById('data-pairing');
+    const tambahDataPairingBtn = document.getElementById('tambah-data-pairing');
+
+    // Referensi Elemen UI (BARU - Form Cepat)
+    const namaCepatInput = document.getElementById('nama-cepat');
+    const alamatCepatInput = document.getElementById('alamat-cepat');
+    const produkCepatInput = document.getElementById('produk-cepat');
+    const waktuCepatInput = document.getElementById('waktu-cepat');
+    const tambahDataCepatBtn = document.getElementById('tambah-data-cepat');
+
+    const posisiDropdown = document.getElementById('posisi');
+    const urutanDropdown = document.getElementById('urutan');
+    const delayAwalInput = document.getElementById('delay-awal');
+    const durasiTampilInput = document.getElementById('durasi-tampil');
+    const jedaAntarInput = document.getElementById('jeda-antar');
+
+    const warnaBgInput = document.getElementById('warna-bg');
+    const warnaTeksUtamaInput = document.getElementById('warna-teks-utama');
+    const warnaTeksWaktuInput = document.getElementById('warna-teks-waktu');
+    const warnaIkonXInput = document.getElementById('warna-ikon-x');
+    
+    const tesPreviewBtn = document.getElementById('tes-preview-btn'); // BARU
+    const buatKodeBtn = document.getElementById('buat-kode');
+    const salinKodeBtn = document.getElementById('salin-kode');
+    const outputKodeTextarea = document.getElementById('output-kode');
+
+    // Referensi Elemen Live Preview
+    const previewPopup = document.getElementById('preview-popup');
+    const previewContent = document.getElementById('preview-popup-content');
+    const previewClose = document.getElementById('preview-popup-close');
+    const toastContainer = document.getElementById('toast-container');
+    const hapusSemuaBtn = document.getElementById('hapus-semua-btn'); // BARU
+
+    // Database Sederhana (Array)
+    let daftarNotifikasiData = [
+        // Data contoh
+        { 
+            nama: "Syarif", 
+            alamat: "Denpasar", 
+            produk: "Notif Pro", 
+            waktu: "5 hours yang lalu" 
+        }
+    ];
+
+    // --- FUNGSI-FUNGSI ---
+
+    // 0. Fungsi Tampilkan Pesan (Pengganti Alert)
+    function tampilkanPesan(pesan, tipe = 'error') {
+        const toast = document.createElement('div');
+        toast.className = `toast-message toast-${tipe}`;
+        toast.textContent = pesan;
+        
+        toastContainer.appendChild(toast);
+        
+        // Tampilkan
+        setTimeout(() => {
+            toast.classList.add('toast-visible');
+        }, 10); // delay kecil untuk memicu transisi
+        
+        // Sembunyikan & Hapus
+        setTimeout(() => {
+            toast.classList.remove('toast-visible');
+            // Hapus elemen setelah transisi selesai
+            toast.addEventListener('transitionend', () => {
+                // Pastikan elemen masih ada sebelum dihapus
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            });
+        }, 3000); // Tampil selama 3 detik
+    }
+
+    // 1. Render Ulang Daftar di UI Kiri
+    function renderDaftar() {
+        daftarNotifikasiUI.innerHTML = '';
+        
+        if (daftarNotifikasiData.length === 0) {
+            daftarNotifikasiUI.innerHTML = '<p class="text-gray-500 italic text-sm">Belum ada data...</p>';
+            hapusSemuaBtn.style.display = 'none'; // Sembunyikan tombol jika data kosong
+            return;
+        }
+        
+        hapusSemuaBtn.style.display = 'inline-block'; // Tampilkan tombol jika ada data
+        
+        daftarNotifikasiData.forEach((data, index) => {
+            const el = document.createElement('div');
+            el.className = 'bg-gray-700 p-3 rounded flex justify-between items-center';
+            el.innerHTML = `
+                <div class="text-sm">
+                    <p class="font-semibold">${data.nama} dari ${data.alamat}</p>
+                    <p class="text-xs text-gray-400">${data.produk} (${data.waktu})</p>
+                </div>
+                <button data-index="${index}" class="hapus-data bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-xs">
+                    Hapus
+                </button>
+            `;
+            daftarNotifikasiUI.appendChild(el);
+        });
+    }
+
+    // 2. Tambah Data Baru (Mode Normal)
+    function tambahData() {
+        const nama = namaInput.value.trim();
+        const alamat = alamatInput.value.trim();
+        const produk = produkInput.value.trim();
+        const waktu = waktuInput.value.trim();
+
+        if (nama && alamat && produk && waktu) {
+            const dataBaru = { nama, alamat, produk, waktu };
+            daftarNotifikasiData.push(dataBaru);
+            
+            // Kosongkan form
+            namaInput.value = '';
+            alamatInput.value = '';
+            produkInput.value = '';
+            waktuInput.value = '';
+            
+            renderDaftar();
+            tampilkanPreview(dataBaru); // Tampilkan preview data yang baru ditambahkan
+            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+            
+            namaInput.focus();
+        } else {
+            tampilkanPesan('Harap isi semua kolom!', 'error');
+        }
+    }
+
+    // 2B. Tambah Data Baru (Mode Cepat) - FUNGSI BARU
+    function tambahDataCepat() {
+        const namaStr = namaCepatInput.value.trim();
+        const alamatStr = alamatCepatInput.value.trim();
+        const produkStr = produkCepatInput.value.trim();
+        const waktuStr = waktuCepatInput.value.trim();
+
+        if (!namaStr || !alamatStr || !produkStr || !waktuStr) {
+            tampilkanPesan('Harap isi semua kolom Mode Cepat!', 'error');
+            return;
+        }
+
+        // Pisahkan string menjadi array, trim, dan filter string kosong
+        const namaArr = namaStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const alamatArr = alamatStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const produkArr = produkStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const waktuArr = waktuStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+        if (namaArr.length === 0 || alamatArr.length === 0 || produkArr.length === 0 || waktuArr.length === 0) {
+            tampilkanPesan('Salah satu kolom tidak valid. Pastikan ada data setelah dipisah koma.', 'error');
+            return;
+        }
+
+        // Cari tahu jumlah data terbanyak yang akan dibuat
+        const lengths = [namaArr.length, alamatArr.length, produkArr.length, waktuArr.length];
+        const maxLen = Math.max(...lengths);
+        let dataDitambahkan = 0;
+
+        for (let i = 0; i < maxLen; i++) {
+            // Gunakan modulo (%) untuk mengulang data dari list yang lebih pendek
+            const nama = namaArr[i % namaArr.length];
+            const alamat = alamatArr[i % alamatArr.length];
+            const produk = produkArr[i % produkArr.length];
+            const waktu = waktuArr[i % waktuArr.length];
+
+            if (nama && alamat && produk && waktu) {
+                const dataBaru = { nama, alamat, produk, waktu };
+                daftarNotifikasiData.push(dataBaru);
+                dataDitambahkan++;
+            }
+        }
+
+        if (dataDitambahkan > 0) {
+            // Kosongkan form cepat
+            namaCepatInput.value = '';
+            alamatCepatInput.value = '';
+            produkCepatInput.value = '';
+            waktuCepatInput.value = '';
+            
+            renderDaftar();
+            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+            tampilkanPesan(`${dataDitambahkan} data notifikasi berhasil ditambahkan!`, 'success');
+            namaCepatInput.focus();
+        } else {
+            tampilkanPesan('Gagal menambahkan data. Periksa input Anda.', 'error');
+        }
+    }
+
+    // 2C. Tambah Data Baru (Mode Pairing) - FUNGSI BARU
+    function tambahDataPairing() {
+        const dataMentah = dataPairingInput.value.trim();
+        if (!dataMentah) {
+            tampilkanPesan('Kolom Data Mentah masih kosong!', 'error');
+            return;
+        }
+
+        const lines = dataMentah.split('\n');
+        let dataDitambahkan = 0;
+        let barisError = [];
+
+        lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+            if (trimmedLine.length === 0) return; // Lewati baris kosong
+
+            const parts = trimmedLine.split(',');
+
+            if (parts.length === 4) {
+                const nama = parts[0].trim();
+                const alamat = parts[1].trim();
+                const produk = parts[2].trim();
+                const waktu = parts[3].trim();
+
+                if (nama && alamat && produk && waktu) {
+                    const dataBaru = { nama, alamat, produk, waktu };
+                    daftarNotifikasiData.push(dataBaru);
+                    dataDitambahkan++;
+                } else {
+                    barisError.push(index + 1); // Catat nomor baris yang datanya tidak lengkap
+                }
+            } else {
+                barisError.push(index + 1); // Catat nomor baris yang formatnya salah
+            }
+        });
+
+        if (dataDitambahkan > 0) {
+            renderDaftar();
+            invalidateKodeOutput();
+            tampilkanPesan(`${dataDitambahkan} data notifikasi berhasil ditambahkan!`, 'success');
+            dataPairingInput.value = ''; // Kosongkan form
+        }
+
+        if (barisError.length > 0) {
+            tampilkanPesan(`Data di baris berikut gagal diproses (format salah): ${barisError.join(', ')}`, 'error');
+        } else if (dataDitambahkan === 0) {
+            tampilkanPesan('Tidak ada data valid yang ditemukan.', 'error');
+        }
+    }
+
+    // 2D. Hapus Semua Data (FUNGSI BARU)
+    function hapusSemuaData() {
+        if (daftarNotifikasiData.length === 0) {
+            tampilkanPesan('Daftar sudah kosong.', 'error');
+            return;
+        }
+        
+        daftarNotifikasiData = []; // Kosongkan array
+        renderDaftar(); // Render ulang (akan menampilkan 'belum ada data' dan menyembunyikan tombol)
+        invalidateKodeOutput(); // Batalkan kode
+        
+        tampilkanPesan('Semua data notifikasi telah dihapus.', 'success');
+    }
+
+
+    // 3. Hapus Data
+    function hapusData(event) {
+        if (event.target.classList.contains('hapus-data')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            daftarNotifikasiData.splice(index, 1);
+            renderDaftar();
+            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+        }
+    }
+    
+    // 4. Update Warna di Live Preview
+    function updatePreviewColors() {
+        const bgColor = warnaBgInput.value;
+        const teksUtama = warnaTeksUtamaInput.value;
+        const teksWaktu = warnaTeksWaktuInput.value;
+        const ikonX = warnaIkonXInput.value;
+        
+        previewPopup.style.backgroundColor = bgColor;
+        
+        const previewStrong = previewContent.querySelector('strong');
+        const previewP = previewContent.querySelector('p');
+        const previewSmall = previewContent.querySelector('small');
+        
+        if (previewP) previewP.style.color = teksUtama;
+        if (previewStrong) previewStrong.style.color = teksUtama; // Pastikan strong juga diwarnai
+        if (previewSmall) previewSmall.style.color = teksWaktu;
+        
+        previewClose.style.color = ikonX;
+    }
+
+    // 5. Tampilkan Live Preview
+    let previewTimer;
+    function tampilkanPreview(data) {
+        // PERBAIKAN CRASH: Hapus perulangan
+        // Jangan panggil gantiPosisiPreview() dari sini.
+        // Cukup atur posisi berdasarkan nilai dropdown saat ini.
+        
+        // Hapus kelas posisi lama
+        previewPopup.classList.remove('preview-position-bottom-left', 'preview-position-bottom-right', 'preview-position-top-left', 'preview-position-top-right');
+        // Tambah kelas posisi baru
+        const posisiValue = posisiDropdown.value.replace('position-', 'preview-position-');
+        previewPopup.classList.add(posisiValue);
+
+        // Set konten
+        previewContent.innerHTML = `
+            <p><strong>${data.nama}</strong> dari <strong>${data.alamat}</strong> baru saja membeli <strong>${data.produk}</strong></p>
+            <small>${data.waktu}</small>
+        `;
+        
+        // Update warna
+        updatePreviewColors();
+        
+        // Tampilkan
+        previewPopup.classList.add('preview-visible');
+        
+        // Hapus timer lama jika ada
+        if (previewTimer) {
+            clearTimeout(previewTimer);
+        }
+        
+        // Sembunyikan otomatis setelah beberapa detik
+        previewTimer = setTimeout(() => {
+            previewPopup.classList.remove('preview-visible');
+        }, 4000); // Preview tampil selama 4 detik
+    }
+    
+    // 6. Ganti Posisi Live Preview
+    function gantiPosisiPreview() {
+        // Fungsi ini hanya dipanggil oleh dropdown 'posisi'
+        // Kita tampilkan preview dengan data terakhir atau data contoh
+        const dataUntukPreview = daftarNotifikasiData[daftarNotifikasiData.length - 1] || { 
+            nama: "Contoh", 
+            alamat: "Kota", 
+            produk: "Produk Anda", 
+            waktu: "Baru saja" 
+        };
+        
+        // PERBAIKAN CRASH:
+        // Hapus panggilan ke tampilkanPreview(dataUntukPreview);
+        // Cukup ganti kelas posisinya
+        
+        // Hapus kelas posisi lama
+        previewPopup.classList.remove('preview-position-bottom-left', 'preview-position-bottom-right', 'preview-position-top-left', 'preview-position-top-right');
+        // Tambah kelas posisi baru
+        const posisiValue = posisiDropdown.value.replace('position-', 'preview-position-');
+        previewPopup.classList.add(posisiValue);
+        
+        // Panggil tampilkanPreview agar muncul
+        tampilkanPreview(dataUntukPreview);
+    }
+    
+    // 7. Tutup Preview Manual
+    function tutupPreview() {
+         if (previewTimer) {
+            clearTimeout(previewTimer);
+        }
+        previewPopup.classList.remove('preview-visible');
+    }
+
+    // 8. Buat Kode Final
+    function buatKode() {
+        if (daftarNotifikasiData.length === 0) {
+            tampilkanPesan('Daftar notifikasi masih kosong! Harap tambahkan data.', 'error');
+            return;
+        }
+
+        const dataJson = JSON.stringify(daftarNotifikasiData, null, 2);
+        const posisi = posisiDropdown.value;
+        const urutan = urutanDropdown.value;
+        const delayAwal = parseInt(delayAwalInput.value, 10) * 1000;
+        const durasiTampil = parseInt(durasiTampilInput.value, 10) * 1000;
+        const jedaAntar = parseInt(jedaAntarInput.value, 10) * 1000;
+
+        const warnaBg = warnaBgInput.value;
+        const warnaTeksUtama = warnaTeksUtamaInput.value;
+        const warnaTeksWaktu = warnaTeksWaktuInput.value;
+        const warnaIkonX = warnaIkonXInput.value;
+
+        const kodeHTML = `
+<!-- === MULAI KODE NOTIFIKASI === -->
+<style>
+    #social-proof-popup {
+        position: fixed;
+        padding: 15px 20px;
+        padding-right: 35px;
+        background-color: ${warnaBg};
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s ease-in-out;
+        max-width: 320px;
+        line-height: 1.4;
+    }
+    
+    /* PILIHAN POSISI */
+    .position-bottom-left {
+        bottom: 20px;
+        left: 20px;
+        transform: translateX(-100px);
+    }
+    .position-bottom-right {
+        bottom: 20px;
+        right: 20px;
+        transform: translateX(100px);
+    }
+    .position-top-left {
+        top: 20px;
+        left: 20px;
+        transform: translateX(-100px);
+    }
+    .position-top-right {
+        top: 20px;
+        right: 20px;
+        transform: translateX(100px);
+    }
+
+    /* Saat terlihat */
+    #social-proof-popup.social-proof-visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+    }
+
+    .social-proof-close {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        color: ${warnaIkonX};
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .social-proof-close:hover {
+        color: #ffffff; /* Bisa disesuaikan */
+    }
+
+    #social-proof-content p {
+        margin: 0;
+        padding: 0;
+        color: ${warnaTeksUtama};
+    }
+    #social-proof-content strong {
+        color: ${warnaTeksUtama}; /* Memastikan warna strong */
+        font-weight: bold;
+    }
+    #social-proof-content small {
+        font-size: 12px;
+        margin-top: 4px;
+        display: inline-block;
+        color: ${warnaTeksWaktu};
+    }
+</style>
+
+<!-- Elemen HTML Notifikasi -->
+<div id="social-proof-popup" class="${posisi}">
+    <div class="social-proof-close">&times;</div>
+    <div id="social-proof-content">
+        <!-- Konten diisi oleh JavaScript -->
+    </div>
+</div>
+
+<script>
+(function() {
+    try {
+        const dataNotifikasi = ${dataJson};
+
+        const config = {
+            delayAwal: ${delayAwal},      // Waktu tunggu awal
+            durasiTampil: ${durasiTampil}, // Berapa lama notif tampil
+            jedaAntar: ${jedaAntar},      // Jeda antar notifikasi
+            urutan: '${urutan}'         // 'berurutan' atau 'acak'
+        };
+
+        const popup = document.getElementById('social-proof-popup');
+        const content = document.getElementById('social-proof-content');
+        const closeBtn = popup.querySelector('.social-proof-close');
+        
+        if (!popup || !content || !closeBtn) {
+            console.warn('Elemen notifikasi tidak ditemukan.');
+            return;
+        }
+
+        let currentIndex = 0;
+        let timerSembunyi;
+        let timerJeda;
+
+        function sembunyikanNotif() {
+            if (timerSembunyi) clearTimeout(timerSembunyi);
+            if (timerJeda) clearTimeout(timerJeda);
+            
+            if (popup) popup.classList.remove('social-proof-visible');
+            
+            // Jadwalkan notif berikutnya
+            timerJeda = setTimeout(tampilkanNotifBerikutnya, config.jedaAntar);
+        }
+
+        function tampilkanNotif(data) {
+            if (!data || !content) return;
+            content.innerHTML = \`
+                <p><strong>\${data.nama}</strong> dari <strong>\${data.alamat}</strong> baru saja membeli <strong>\${data.produk}</strong></p>
+                <small>\${data.waktu}</small>
+            \`;
+            if (popup) popup.classList.add('social-proof-visible');
+            
+            // Sembunyikan otomatis
+            if (timerSembunyi) clearTimeout(timerSembunyi);
+            timerSembunyi = setTimeout(sembunyikanNotif, config.durasiTampil);
+        }
+
+        function tampilkanNotifBerikutnya() {
+            if (dataNotifikasi.length === 0) return;
+            
+            let data;
+            
+            if (config.urutan === 'acak') {
+                const randomIndex = Math.floor(Math.random() * dataNotifikasi.length);
+                data = dataNotifikasi[randomIndex];
+            } else {
+                // Mode berurutan (default)
+                data = dataNotifikasi[currentIndex];
+                currentIndex++;
+                if (currentIndex >= dataNotifikasi.length) {
+                    currentIndex = 0; // Ulang dari awal
+                }
+            }
+            
+            tampilkanNotif(data);
+        }
+
+        // Event Listener
+        closeBtn.addEventListener('click', sembunyikanNotif);
+        
+        // Mulai siklus
+        setTimeout(tampilkanNotifBerikutnya, config.delayAwal);
+
+    } catch (e) {
+        console.error('Error pada skrip notifikasi:', e);
+    }
+})();
+<\/script>
+<!-- === AKHIR KODE NOTIFIKASI === -->
+        `;
+        
+        outputKodeTextarea.value = kodeHTML.trim();
+        outputKodeTextarea.classList.remove('text-yellow-400'); // Hapus style peringatan
+    }
+    
+    // 9. Salin Kode
+    function salinKode() {
+        if (outputKodeTextarea.value === "" || !outputKodeTextarea.value.startsWith('<!--')) {
+            tampilkanPesan('Belum ada kode untuk disalin. Klik "Buat Kode".', 'error');
+            return;
+        }
+        
+        outputKodeTextarea.select();
+        try {
+            document.execCommand('copy');
+            salinKodeBtn.textContent = 'Berhasil Disalin!';
+            tampilkanPesan('Kode berhasil disalin!', 'success');
+            setTimeout(() => {
+                salinKodeBtn.textContent = 'Salin Kode';
+            }, 2000);
+        } catch (err) {
+            tampilkanPesan('Gagal menyalin kode. Silakan salin secara manual.', 'error');
+        }
+        window.getSelection().removeAllRanges();
+    }
+
+    // 10. Invalidate (Hapus) Kode di Output jika Data Berubah
+    function invalidateKodeOutput() {
+        // Cek jika textarea sudah berisi kode (bukan placeholder atau pesan invalid)
+        if (outputKodeTextarea.value.startsWith('<!--')) {
+            outputKodeTextarea.value = 'Daftar notifikasi atau pengaturan telah diubah.\n\nKlik "Buat Kode Untuk Website Saya" lagi untuk memperbarui kode.';
+            outputKodeTextarea.classList.add('text-yellow-400'); // Tambah warna peringatan
+        }
+        salinKodeBtn.textContent = 'Salin Kode'; // Reset tombol salin
+    }
+
+
+    // --- Event Listeners ---
+    tambahBtn.addEventListener('click', tambahData); // Listener lama
+    tambahDataCepatBtn.addEventListener('click', tambahDataCepat); // Listener baru
+    tambahDataPairingBtn.addEventListener('click', tambahDataPairing); // Listener Pairing (BARU)
+    hapusSemuaBtn.addEventListener('click', hapusSemuaData); // Listener Hapus Semua (BARU)
+    
+    // Listener untuk Mode Toggle (BARU)
+    btnModeNormal.addEventListener('click', () => {
+        modeNormalDiv.classList.remove('hidden');
+        modeCepatDiv.classList.add('hidden');
+        modePairingDiv.classList.add('hidden');
+        
+        // Update style tombol
+        btnModeNormal.classList.add('bg-blue-600', 'text-white');
+        btnModeNormal.classList.remove('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        
+        btnModeCepat.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModeCepat.classList.remove('bg-blue-600', 'text-white');
+        
+        btnModePairing.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModePairing.classList.remove('bg-blue-600', 'text-white');
+    });
+    
+    btnModeCepat.addEventListener('click', () => {
+        modeNormalDiv.classList.add('hidden');
+        modeCepatDiv.classList.remove('hidden');
+        modePairingDiv.classList.add('hidden');
+        
+        // Update style tombol
+        btnModeCepat.classList.add('bg-blue-600', 'text-white');
+        btnModeCepat.classList.remove('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        
+        btnModeNormal.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModeNormal.classList.remove('bg-blue-600', 'text-white');
+        
+        btnModePairing.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModePairing.classList.remove('bg-blue-600', 'text-white');
+    });
+    
+    btnModePairing.addEventListener('click', () => {
+        modeNormalDiv.classList.add('hidden');
+        modeCepatDiv.classList.add('hidden');
+        modePairingDiv.classList.remove('hidden');
+        
+        // Update style tombol
+        btnModePairing.classList.add('bg-blue-600', 'text-white');
+        btnModePairing.classList.remove('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        
+        btnModeNormal.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModeNormal.classList.remove('bg-blue-600', 'text-white');
+        
+        btnModeCepat.classList.add('bg-gray-600', 'hover:bg-gray-500', 'text-gray-300');
+        btnModeCepat.classList.remove('bg-blue-600', 'text-white');
+    });
+
+    daftarNotifikasiUI.addEventListener('click', hapusData);
+    
+    posisiDropdown.addEventListener('change', () => {
+        gantiPosisiPreview();
+        invalidateKodeOutput();
+    });
+    
+    // Listener untuk update warna live
+    warnaBgInput.addEventListener('input', () => {
+        updatePreviewColors();
+        invalidateKodeOutput();
+    });
+    warnaTeksUtamaInput.addEventListener('input', () => {
+        updatePreviewColors();
+        invalidateKodeOutput();
+    });
+    warnaTeksWaktuInput.addEventListener('input', () => {
+        updatePreviewColors();
+        invalidateKodeOutput();
+    });
+    warnaIkonXInput.addEventListener('input', () => {
+        updatePreviewColors();
+        invalidateKodeOutput();
+    });
+    
+    // Listener untuk input waktu
+    delayAwalInput.addEventListener('input', invalidateKodeOutput);
+    durasiTampilInput.addEventListener('input', invalidateKodeOutput);
+    jedaAntarInput.addEventListener('input', invalidateKodeOutput);
+    urutanDropdown.addEventListener('change', invalidateKodeOutput);
+    
+    previewClose.addEventListener('click', tutupPreview);
+    
+    tesPreviewBtn.addEventListener('click', gantiPosisiPreview); // BARU
+
+    buatKodeBtn.addEventListener('click', buatKode);
+    salinKodeBtn.addEventListener('click', salinKode);
+
+    // Render data contoh saat pertama kali dimuat
+    renderDaftar();
+    
+    </script>
+</body>
+</html>
