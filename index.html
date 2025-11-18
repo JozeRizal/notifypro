@@ -11,7 +11,6 @@
         }
         
         /* --- PERBAIKAN UNTUK AUTOFILL BROWSER --- */
-        /* Memaksa latar belakang putih dan teks hitam saat autofill */
         input:-webkit-autofill,
         input:-webkit-autofill:hover, 
         input:-webkit-autofill:focus, 
@@ -31,7 +30,6 @@
         }
         
         /* --- Gaya untuk Live Preview Notifikasi --- */
-        /* Ini adalah style yang akan digunakan di PREVIEW dan di KODE FINAL */
         #preview-popup {
             position: fixed;
             padding: 15px 20px;
@@ -130,8 +128,7 @@
     <div id="preview-popup">
         <div id="preview-popup-close">&times;</div>
         <div id="preview-popup-content">
-            <p><strong>Syarif</strong> dari <strong>Denpasar</strong> baru saja membeli <strong>NotifPro</strong></p>
-            <small>5 hours yang lalu</small>
+            <!-- Konten Live Preview akan di-generate JS -->
         </div>
     </div>
     
@@ -166,8 +163,8 @@
                                 <input type="text" id="nama" placeholder="Contoh: Syarif" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
                             </div>
                             <div>
-                                <label for="alamat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota</label>
-                                <input type="text" id="alamat" placeholder="Contoh: Denpasar" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
+                                <label for="alamat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota (Opsional)</label>
+                                <input type="text" id="alamat" placeholder="Contoh: Denpasar (Boleh dikosongkan)" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;">
                             </div>
                             <div>
                                 <label for="produk" class="block text-sm font-medium text-gray-300 mb-1">Nama Produk</label>
@@ -183,7 +180,7 @@
                         </div>
                     </div>
                     
-                    <!-- 1. Form Input Data (CEPAT) - BARU -->
+                    <!-- 1. Form Input Data (CEPAT) -->
                     <div id="mode-cepat" class="hidden">
                         <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">1. Tambah Data Notifikasi (Cepat)</h2>
                         <div class="space-y-4">
@@ -193,8 +190,8 @@
                                 <p class="text-xs text-gray-400 mt-1">Pisahkan setiap nama dengan koma (,)</p>
                             </div>
                             <div>
-                                <label for="alamat-cepat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota</label>
-                                <textarea id="alamat-cepat" rows="3" placeholder="Contoh: Denpasar, Jakarta, Bandung" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <label for="alamat-cepat" class="block text-sm font-medium text-gray-300 mb-1">Alamat/Kota (Opsional)</label>
+                                <textarea id="alamat-cepat" rows="3" placeholder="Contoh: Denpasar, Jakarta, Bandung (Boleh kosong)" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
                                 <p class="text-xs text-gray-400 mt-1">Pisahkan setiap alamat dengan koma (,)</p>
                             </div>
                             <div>
@@ -213,15 +210,15 @@
                         </div>
                     </div>
 
-                    <!-- 1. Form Input Data (PAIRING) - BARU -->
+                    <!-- 1. Form Input Data (PAIRING) -->
                     <div id="mode-pairing" class="hidden">
                         <h2 class="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">1. Tambah Data Notifikasi (Pairing)</h2>
                         <div class="space-y-4">
                             <div>
                                 <label for="data-pairing" class="block text-sm font-medium text-gray-300 mb-1">Data Mentah (Satu notifikasi per baris)</label>
-                                <textarea id="data-pairing" rows="5" placeholder="Syarif, Denpasar, Notif Pro, 1 jam lalu&#10;Budi, Jakarta, Ebook FB Ads, 5 menit lalu" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
-                                <p class="text-xs text-gray-400 mt-1">Format: <strong>Nama, Alamat, Produk, Waktu</strong></p>
-                                <p class="text-xs text-gray-400 mt-1">Pisahkan tiap data dengan koma (,)</p>
+                                <textarea id="data-pairing" rows="5" placeholder="Contoh Lengkap:&#10;Syarif, Denpasar, Notif Pro, 1 jam lalu&#10;&#10;Contoh Tanpa Alamat (Simpel):&#10;Budi, Ebook FB Ads, 5 menit lalu" class="w-full p-2 border border-gray-600 rounded bg-white text-black" style="background-color: white; color: black !important;"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">Format 1: <strong>Nama, Alamat, Produk, Waktu</strong></p>
+                                <p class="text-xs text-gray-400 mt-1">Format 2: <strong>Nama, Produk, Waktu</strong> (Otomatis tanpa alamat)</p>
                             </div>
                             <button id="tambah-data-pairing" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
                                 Tambah Notifikasi dari Pairing
@@ -380,7 +377,7 @@
     const warnaTeksWaktuInput = document.getElementById('warna-teks-waktu');
     const warnaIkonXInput = document.getElementById('warna-ikon-x');
     
-    const tesPreviewBtn = document.getElementById('tes-preview-btn'); // BARU
+    const tesPreviewBtn = document.getElementById('tes-preview-btn'); 
     const buatKodeBtn = document.getElementById('buat-kode');
     const salinKodeBtn = document.getElementById('salin-kode');
     const outputKodeTextarea = document.getElementById('output-kode');
@@ -390,7 +387,7 @@
     const previewContent = document.getElementById('preview-popup-content');
     const previewClose = document.getElementById('preview-popup-close');
     const toastContainer = document.getElementById('toast-container');
-    const hapusSemuaBtn = document.getElementById('hapus-semua-btn'); // BARU
+    const hapusSemuaBtn = document.getElementById('hapus-semua-btn'); 
 
     // Database Sederhana (Array)
     let daftarNotifikasiData = [
@@ -446,9 +443,13 @@
         daftarNotifikasiData.forEach((data, index) => {
             const el = document.createElement('div');
             el.className = 'bg-gray-700 p-3 rounded flex justify-between items-center';
+            
+            // Logika Tampilan di List Admin
+            let lokasiTeks = data.alamat ? `dari ${data.alamat}` : '';
+            
             el.innerHTML = `
                 <div class="text-sm">
-                    <p class="font-semibold">${data.nama} dari ${data.alamat}</p>
+                    <p class="font-semibold">${data.nama} ${lokasiTeks}</p>
                     <p class="text-xs text-gray-400">${data.produk} (${data.waktu})</p>
                 </div>
                 <button data-index="${index}" class="hapus-data bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-xs">
@@ -466,7 +467,8 @@
         const produk = produkInput.value.trim();
         const waktu = waktuInput.value.trim();
 
-        if (nama && alamat && produk && waktu) {
+        // Validasi: Alamat sekarang opsional
+        if (nama && produk && waktu) {
             const dataBaru = { nama, alamat, produk, waktu };
             daftarNotifikasiData.push(dataBaru);
             
@@ -478,50 +480,54 @@
             
             renderDaftar();
             tampilkanPreview(dataBaru); // Tampilkan preview data yang baru ditambahkan
-            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+            invalidateKodeOutput(); 
             
             namaInput.focus();
         } else {
-            tampilkanPesan('Harap isi semua kolom!', 'error');
+            tampilkanPesan('Harap isi Nama, Produk, dan Waktu!', 'error');
         }
     }
 
-    // 2B. Tambah Data Baru (Mode Cepat) - FUNGSI BARU
+    // 2B. Tambah Data Baru (Mode Cepat)
     function tambahDataCepat() {
         const namaStr = namaCepatInput.value.trim();
         const alamatStr = alamatCepatInput.value.trim();
         const produkStr = produkCepatInput.value.trim();
         const waktuStr = waktuCepatInput.value.trim();
 
-        if (!namaStr || !alamatStr || !produkStr || !waktuStr) {
-            tampilkanPesan('Harap isi semua kolom Mode Cepat!', 'error');
+        if (!namaStr || !produkStr || !waktuStr) {
+            tampilkanPesan('Harap isi kolom Nama, Produk, dan Waktu!', 'error');
             return;
         }
 
-        // Pisahkan string menjadi array, trim, dan filter string kosong
+        // Pisahkan string menjadi array
         const namaArr = namaStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const alamatArr = alamatStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        // Alamat boleh kosong, tapi kita perlu array minimal 1 elemen kosong agar logic loop berjalan
+        let alamatArr = alamatStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        if (alamatArr.length === 0) alamatArr = [""]; // Fallback jika alamat dikosongkan
+
         const produkArr = produkStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
         const waktuArr = waktuStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-        if (namaArr.length === 0 || alamatArr.length === 0 || produkArr.length === 0 || waktuArr.length === 0) {
-            tampilkanPesan('Salah satu kolom tidak valid. Pastikan ada data setelah dipisah koma.', 'error');
+        if (namaArr.length === 0 || produkArr.length === 0 || waktuArr.length === 0) {
+            tampilkanPesan('Salah satu kolom wajib (Nama/Produk/Waktu) tidak valid.', 'error');
             return;
         }
 
         // Cari tahu jumlah data terbanyak yang akan dibuat
-        const lengths = [namaArr.length, alamatArr.length, produkArr.length, waktuArr.length];
+        const lengths = [namaArr.length, produkArr.length, waktuArr.length]; // Alamat tidak mempengaruhi max length jika opsional
         const maxLen = Math.max(...lengths);
         let dataDitambahkan = 0;
 
         for (let i = 0; i < maxLen; i++) {
             // Gunakan modulo (%) untuk mengulang data dari list yang lebih pendek
             const nama = namaArr[i % namaArr.length];
-            const alamat = alamatArr[i % alamatArr.length];
+            // Handle alamat opsional dengan aman
+            const alamat = alamatArr.length > 0 ? alamatArr[i % alamatArr.length] : ""; 
             const produk = produkArr[i % produkArr.length];
             const waktu = waktuArr[i % waktuArr.length];
 
-            if (nama && alamat && produk && waktu) {
+            if (nama && produk && waktu) {
                 const dataBaru = { nama, alamat, produk, waktu };
                 daftarNotifikasiData.push(dataBaru);
                 dataDitambahkan++;
@@ -536,7 +542,7 @@
             waktuCepatInput.value = '';
             
             renderDaftar();
-            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+            invalidateKodeOutput(); 
             tampilkanPesan(`${dataDitambahkan} data notifikasi berhasil ditambahkan!`, 'success');
             namaCepatInput.focus();
         } else {
@@ -544,7 +550,7 @@
         }
     }
 
-    // 2C. Tambah Data Baru (Mode Pairing) - FUNGSI BARU
+    // 2C. Tambah Data Baru (Mode Pairing)
     function tambahDataPairing() {
         const dataMentah = dataPairingInput.value.trim();
         if (!dataMentah) {
@@ -562,21 +568,37 @@
 
             const parts = trimmedLine.split(',');
 
-            if (parts.length === 4) {
-                const nama = parts[0].trim();
-                const alamat = parts[1].trim();
-                const produk = parts[2].trim();
-                const waktu = parts[3].trim();
+            // LOGIKA BARU: SMART DETECTION
+            let nama, alamat, produk, waktu;
+            let isValid = false;
 
-                if (nama && alamat && produk && waktu) {
+            if (parts.length === 4) {
+                // Format Lengkap: Nama, Alamat, Produk, Waktu
+                nama = parts[0].trim();
+                alamat = parts[1].trim();
+                produk = parts[2].trim();
+                waktu = parts[3].trim();
+                isValid = true;
+            } else if (parts.length === 3) {
+                // Format Simpel: Nama, Produk, Waktu (Alamat dianggap kosong)
+                nama = parts[0].trim();
+                alamat = ""; // Kosongkan alamat
+                produk = parts[1].trim();
+                waktu = parts[2].trim();
+                isValid = true;
+            }
+
+            if (isValid) {
+                // Validasi data wajib (Nama, Produk, Waktu) harus ada
+                if (nama && produk && waktu) {
                     const dataBaru = { nama, alamat, produk, waktu };
                     daftarNotifikasiData.push(dataBaru);
                     dataDitambahkan++;
                 } else {
-                    barisError.push(index + 1); // Catat nomor baris yang datanya tidak lengkap
+                    barisError.push(index + 1);
                 }
             } else {
-                barisError.push(index + 1); // Catat nomor baris yang formatnya salah
+                barisError.push(index + 1); // Format kolom salah (bukan 3 atau 4)
             }
         });
 
@@ -588,13 +610,13 @@
         }
 
         if (barisError.length > 0) {
-            tampilkanPesan(`Data di baris berikut gagal diproses (format salah): ${barisError.join(', ')}`, 'error');
+            tampilkanPesan(`Data di baris berikut gagal (format salah): ${barisError.join(', ')}`, 'error');
         } else if (dataDitambahkan === 0) {
-            tampilkanPesan('Tidak ada data valid yang ditemukan.', 'error');
+            tampilkanPesan('Tidak ada data valid yang ditemukan. Gunakan format: Nama, Produk, Waktu', 'error');
         }
     }
 
-    // 2D. Hapus Semua Data (FUNGSI BARU)
+    // 2D. Hapus Semua Data
     function hapusSemuaData() {
         if (daftarNotifikasiData.length === 0) {
             tampilkanPesan('Daftar sudah kosong.', 'error');
@@ -602,7 +624,7 @@
         }
         
         daftarNotifikasiData = []; // Kosongkan array
-        renderDaftar(); // Render ulang (akan menampilkan 'belum ada data' dan menyembunyikan tombol)
+        renderDaftar(); // Render ulang
         invalidateKodeOutput(); // Batalkan kode
         
         tampilkanPesan('Semua data notifikasi telah dihapus.', 'success');
@@ -615,7 +637,7 @@
             const index = parseInt(event.target.dataset.index, 10);
             daftarNotifikasiData.splice(index, 1);
             renderDaftar();
-            invalidateKodeOutput(); // <-- MEMBATALKAN KODE LAMA
+            invalidateKodeOutput();
         }
     }
     
@@ -628,12 +650,12 @@
         
         previewPopup.style.backgroundColor = bgColor;
         
-        const previewStrong = previewContent.querySelector('strong');
+        const previewStrong = previewContent.querySelectorAll('strong');
         const previewP = previewContent.querySelector('p');
         const previewSmall = previewContent.querySelector('small');
         
         if (previewP) previewP.style.color = teksUtama;
-        if (previewStrong) previewStrong.style.color = teksUtama; // Pastikan strong juga diwarnai
+        previewStrong.forEach(el => el.style.color = teksUtama);
         if (previewSmall) previewSmall.style.color = teksWaktu;
         
         previewClose.style.color = ikonX;
@@ -642,21 +664,24 @@
     // 5. Tampilkan Live Preview
     let previewTimer;
     function tampilkanPreview(data) {
-        // PERBAIKAN CRASH: Hapus perulangan
-        // Jangan panggil gantiPosisiPreview() dari sini.
-        // Cukup atur posisi berdasarkan nilai dropdown saat ini.
-        
         // Hapus kelas posisi lama
         previewPopup.classList.remove('preview-position-bottom-left', 'preview-position-bottom-right', 'preview-position-top-left', 'preview-position-top-right');
         // Tambah kelas posisi baru
         const posisiValue = posisiDropdown.value.replace('position-', 'preview-position-');
         previewPopup.classList.add(posisiValue);
 
+        // Logic Tampilan: Cek apakah alamat ada
+        let htmlContent = `<p><strong>${data.nama}</strong>`;
+        
+        if (data.alamat && data.alamat.trim() !== "") {
+            htmlContent += ` dari <strong>${data.alamat}</strong>`;
+        }
+        
+        htmlContent += ` baru saja membeli <strong>${data.produk}</strong></p>`;
+        htmlContent += `<small>${data.waktu}</small>`;
+
         // Set konten
-        previewContent.innerHTML = `
-            <p><strong>${data.nama}</strong> dari <strong>${data.alamat}</strong> baru saja membeli <strong>${data.produk}</strong></p>
-            <small>${data.waktu}</small>
-        `;
+        previewContent.innerHTML = htmlContent;
         
         // Update warna
         updatePreviewColors();
@@ -672,13 +697,11 @@
         // Sembunyikan otomatis setelah beberapa detik
         previewTimer = setTimeout(() => {
             previewPopup.classList.remove('preview-visible');
-        }, 4000); // Preview tampil selama 4 detik
+        }, 4000); 
     }
     
     // 6. Ganti Posisi Live Preview
     function gantiPosisiPreview() {
-        // Fungsi ini hanya dipanggil oleh dropdown 'posisi'
-        // Kita tampilkan preview dengan data terakhir atau data contoh
         const dataUntukPreview = daftarNotifikasiData[daftarNotifikasiData.length - 1] || { 
             nama: "Contoh", 
             alamat: "Kota", 
@@ -686,17 +709,10 @@
             waktu: "Baru saja" 
         };
         
-        // PERBAIKAN CRASH:
-        // Hapus panggilan ke tampilkanPreview(dataUntukPreview);
-        // Cukup ganti kelas posisinya
-        
-        // Hapus kelas posisi lama
         previewPopup.classList.remove('preview-position-bottom-left', 'preview-position-bottom-right', 'preview-position-top-left', 'preview-position-top-right');
-        // Tambah kelas posisi baru
         const posisiValue = posisiDropdown.value.replace('position-', 'preview-position-');
         previewPopup.classList.add(posisiValue);
         
-        // Panggil tampilkanPreview agar muncul
         tampilkanPreview(dataUntukPreview);
     }
     
@@ -852,10 +868,19 @@
 
         function tampilkanNotif(data) {
             if (!data || !content) return;
-            content.innerHTML = \`
-                <p><strong>\${data.nama}</strong> dari <strong>\${data.alamat}</strong> baru saja membeli <strong>\${data.produk}</strong></p>
-                <small>\${data.waktu}</small>
-            \`;
+            
+            // Logika jika alamat kosong
+            let htmlIsi = '<p><strong>' + data.nama + '</strong>';
+            
+            if (data.alamat && data.alamat.trim() !== "") {
+                htmlIsi += ' dari <strong>' + data.alamat + '</strong>';
+            }
+            
+            htmlIsi += ' baru saja membeli <strong>' + data.produk + '</strong></p>';
+            htmlIsi += '<small>' + data.waktu + '</small>';
+            
+            content.innerHTML = htmlIsi;
+
             if (popup) popup.classList.add('social-proof-visible');
             
             // Sembunyikan otomatis
@@ -1021,7 +1046,7 @@
     
     previewClose.addEventListener('click', tutupPreview);
     
-    tesPreviewBtn.addEventListener('click', gantiPosisiPreview); // BARU
+    tesPreviewBtn.addEventListener('click', gantiPosisiPreview); 
 
     buatKodeBtn.addEventListener('click', buatKode);
     salinKodeBtn.addEventListener('click', salinKode);
